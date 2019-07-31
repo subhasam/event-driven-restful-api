@@ -3,16 +3,14 @@ Work Distribution API
 # An Event Driven RESTful API using Vertx
 ![docs/Event-Driven-WDS-API.png](docs/Event-Driven-WDS-API.png)
 
-Build and Deployment : `mvn clean install vertx:runMod`
-
-API Status Check: 
-```
-http://localhost:8080/workdistribution/v1/health-check
-```
-## To run the service
+## Build and Deployment
 ```
 cd work-distribution-api
 mvn clean install vertx:runMod
+```
+API Status Check: 
+```
+http://localhost:8080/workdistribution/v1/health-check
 ```
 
 API End Points :
