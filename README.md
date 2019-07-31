@@ -1,7 +1,7 @@
 Work Distribution API
 ======================
 # An Event Driven RESTful API using Vertx
-
+![docs/Event-Driven-WDS-API.png](docs/Event-Driven-WDS-API.png)
 
 Build and Deployment : `mvn clean install vertx:runMod`
 
