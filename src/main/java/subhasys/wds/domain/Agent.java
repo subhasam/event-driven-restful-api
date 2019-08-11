@@ -4,12 +4,21 @@
 package subhasys.wds.domain;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import subhasys.wds.enums.TaskPriority;
 
 /**
  * @author subhasis
+ * 
+ * @description An agent is defined by a unique identifier, and a set of skills
+ *              they possess.
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Agent implements Serializable {
 
 	/**
@@ -19,8 +28,36 @@ public class Agent implements Serializable {
 
 	private String agentId;
 	private String fullName;
-	private boolean available;
+	private String skill;
 	private Set<Skill> skillSet;
+	private TaskPriority assignedTaskPriority;
+	private boolean available;
+
+	/**
+	 * 
+	 */
+	public Agent() {
+		super();
+	}
+
+	/**
+	 * @param agentId
+	 * @param fullName
+	 * @param skill
+	 * @param skillSet
+	 * @param assignedTaskPriority
+	 * @param available
+	 */
+	public Agent(String agentId, String fullName, String skill, Set<Skill> skillSet, TaskPriority assignedTaskPriority,
+			boolean available) {
+		super();
+		this.agentId = agentId;
+		this.fullName = fullName;
+		this.skill = skill;
+		this.skillSet = skillSet;
+		this.assignedTaskPriority = assignedTaskPriority;
+		this.available = available;
+	}
 
 	/**
 	 * @return the agentId
@@ -51,6 +88,20 @@ public class Agent implements Serializable {
 	}
 
 	/**
+	 * @return the skill
+	 */
+	public String getSkill() {
+		return skill;
+	}
+
+	/**
+	 * @param skill the skill to set
+	 */
+	public void setSkill(String skill) {
+		this.skill = skill;
+	}
+
+	/**
 	 * @return the available
 	 */
 	public boolean isAvailable() {
@@ -78,9 +129,45 @@ public class Agent implements Serializable {
 		this.skillSet = skillSet;
 	}
 
+	/**
+	 * @return the assignedTaskPriority
+	 */
+	public TaskPriority getAssignedTaskPriority() {
+		return assignedTaskPriority;
+	}
+
+	/**
+	 * @param assignedTaskPriority the assignedTaskPriority to set
+	 */
+	public void setAssignedTaskPriority(TaskPriority assignedTaskPriority) {
+		this.assignedTaskPriority = assignedTaskPriority;
+	}
+
 	@Override
 	public String toString() {
-		return String.format("Agent [agentId=%s, fullName=%s]", agentId, fullName);
+		return String.format("Agent [agentId=%s, fullName=%s, skill=%s, available=%s, skillSet=%s, assignedTask=%s]",
+				agentId, fullName, skill, available, skillSet);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(agentId, available, fullName);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Agent other = (Agent) obj;
+		return Objects.equals(agentId, other.agentId) && available == other.available
+				&& Objects.equals(fullName, other.fullName);
 	}
 
 }

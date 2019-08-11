@@ -1,5 +1,5 @@
 {
-	"main":"subhasys.wds.services.WorkDistributionVerticle",
+	"main":"subhasys.wds.verticles.WorkDistributionVerticle",
 	"description":"Work-Distribution RESTful API",
 	"author": "Subhasis Samal",
 	"auto-redeploy": true

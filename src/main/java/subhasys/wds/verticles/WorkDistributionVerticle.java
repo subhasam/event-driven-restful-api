@@ -3,67 +3,98 @@
  */
 package subhasys.wds.verticles;
 
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.http.RouteMatcher;
-import org.vertx.java.platform.Verticle;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Context;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 
 /**
- * @author Subhasis
+ * @author subhasis
  *
  */
-public class WorkDistributionVerticle extends Verticle {
-	public void start() {
-		RouteMatcher wdsApiRouteMatcher = new RouteMatcher();
-		wdsApiRouteMatcher.get("/workdistribution/v1/health-check", new Handler<HttpServerRequest>() {
-
-			public void handle(final HttpServerRequest request) {
-				// sleep for 500 milli-secs
-				vertx.setTimer(500, new Handler<Long>() {
-
-					public void handle(Long timer) {
-						request.response().end("Health-Check : Work Distribution API is Up Running...");
-					}
-					
-				});
-				
-			}
-			
-		});
-		
-		wdsApiRouteMatcher.post("/workdistribution/v1/task", new Handler<HttpServerRequest>() {
-
-			public void handle(final HttpServerRequest request) {
-				// sleep for 1000 milli-secs
-				vertx.setTimer(1000, new Handler<Long>() {
-
-					public void handle(Long timer) {
-						request.response().end("Congratulations..Your task has been created and Assigned to a skilled Agent.");
-					}
-					
-				});
-				
-			}
-			
-		});
-		
-		wdsApiRouteMatcher.put("/workdistribution/v1/task/id", new Handler<HttpServerRequest>() {
-
-			public void handle(final HttpServerRequest request) {
-				// sleep for 500 milli-secs
-				vertx.setTimer(500, new Handler<Long>() {
-
-					public void handle(Long timer) {
-						request.response().end("Congratulations..The Task# has been marked as Completed.");
-					}
-					
-				});
-				
-			}
-			
-		});
-		
-		vertx.createHttpServer().requestHandler(wdsApiRouteMatcher).listen(8080);
+public class WorkDistributionVerticle extends AbstractVerticle {
+	
+	private List<String> deploymentIds;
+	
+	@Override
+	public void init(Vertx vertx, Context context) {
+		super.init(vertx, context);
+		deploymentIds = new ArrayList<String>();
+		System.out.println("init() :: Deployments = "+ deploymentIds.size());
 	}
+	
+	@Override
+	public void start(Future<Void> futureResult) {
+		System.out.println("WorkDistributionVerticle :: start() - Going to Deploy WdsApiSharedCache");
+		/*CompositeFuture.all(deployEmbeddedMongoDB(), deployEmbeddedCache()).setHandler(res -> {
+			if (res.failed()) {
+				futureResult.fail(res.cause());
+				return;
+			}
+		});*/
+		Future<String> future = Future.future();
+		DeploymentOptions options = new DeploymentOptions();
+		// options.setWorker(true);
+		vertx.deployVerticle(WdsApiSharedCache.class.getName(), options, future);
+		System.out.println("WorkDistributionVerticle :: start() - Done Deploying WdsApiSharedCache");
+		//return future;
+	}
+	
+	
+	
+	private Future<String> deployEmbeddedMongoDB() {
+		Future<String> future = Future.future();
+		DeploymentOptions options = new DeploymentOptions();
+		//TODO - Verify Worker Verticle options.setWorker(true);
+		vertx.deployVerticle(WorkDistributionDatabaseServer.class.getName(), options, future);
+		return future;
+	}
+
+	private Future<String> deployEmbeddedCache() {
+		Future<String> future = Future.future();
+		DeploymentOptions options = new DeploymentOptions();
+		options.setWorker(true);
+		vertx.deployVerticle(WdsApiSharedCache.class.getName(), options, future);
+		return future;
+	}
+	
+	@Override
+	public void stop(Future<Void> future) {
+		CompositeFuture.all(
+			deploymentIds
+					.stream()
+					.map(this::undeploy)
+					.collect(Collectors.toList())
+		).setHandler(future.<CompositeFuture>map(c -> null).completer());
+
+	}
+
+	private Future<Void> undeploy(String deploymentId) {
+		Future<Void> future = Future.future();
+		vertx.undeploy(deploymentId, res -> {
+			if (res.succeeded()) {
+				future.complete();
+			} else {
+				future.fail(res.cause());
+			}
+		});
+		return future;
+	}
+	
+	public static void main(String... wdsApiArgs) {
+		Vertx wdsApiVertx = Vertx.vertx();
+		System.out.println("WorkDistributionVerticle :: main() - Deploying WorkDistributionServer");
+		wdsApiVertx.deployVerticle(WorkDistributionServer.class.getName());
+		System.out.println("WorkDistributionVerticle :: main() - DONE Deploying WorkDistributionServer");
+	}
+	
+	
 
 }
