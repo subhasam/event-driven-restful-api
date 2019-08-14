@@ -6,15 +6,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import org.bson.types.ObjectId;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
-import subhasys.wds.domain.Agent;
 import subhasys.wds.domain.Task;
-import subhasys.wds.enums.TaskPriority;
 import subhasys.wds.enums.TaskStatus;
 
 public class TaskAssignmentDao {
@@ -40,6 +39,7 @@ public class TaskAssignmentDao {
 	public void findTaskById(String taskId, Handler<AsyncResult<JsonObject>> handler) {
 		JsonObject taskSerachQuery = new JsonObject();
 		//taskSerachQuery.put("_id", taskId);
+		System.out.println("TaskAssignmentDAO :: findTaskById() :: Find Task By ID =>" +taskId);
 		taskSerachQuery.put("taskId", taskId);
 		mongoDbClient.findOne(WDS_TASK_TABLE, taskSerachQuery, null, handler);
 	}
@@ -76,8 +76,7 @@ public class TaskAssignmentDao {
 		return wdsTaskList;
 	}
 
-	public void createTask(Task requestedTask, Handler<AsyncResult<String>> addTaskHandler) {
-
+	public void createTask(Task requestedTask, Handler<AsyncResult<String>> addTaskHandler) {//Task requestedTask, Handler<AsyncResult<String>> addTaskHandler
 		requestedTask.setStartTime(LocalDateTime.now());
 		final JsonObject taskRequested = new JsonObject(Json.encode(requestedTask));
 		System.out.println("TaskAssignmentDao : createTask() - Inderting Task to DB =>"+ taskRequested.encodePrettily());
@@ -85,18 +84,41 @@ public class TaskAssignmentDao {
 
 	}
 
-	public void updateTask(JsonObject task, Handler<AsyncResult<JsonObject>> taskHandler) {
-		JsonObject taskRetrievalQuery = new JsonObject();
-		taskRetrievalQuery.put("taskId", task.getString("taskId"));
-		JsonObject updatedTask = new JsonObject();
-		updatedTask.put("$set taskStatus", task.getString("taskStatus"));
-		mongoDbClient.findOneAndUpdate(WDS_TASK_TABLE, taskRetrievalQuery, updatedTask, taskUpdateRes -> {
+	/*public void updateTask(JsonObject updatedTask, Handler<AsyncResult<JsonObject>> taskHandler) {
+		JsonObject taskUpdateQuery = new JsonObject();
+		System.out.println("TaskAssignmentDao: updateTask() - updatedTask =>" + Json.encodePrettily(updatedTask));
+		// System.out.println("updatedTask OID =>" + updatedTask.getJsonObject("_id").getString("$oid")); //.getJsonObject("$oid")
+		taskUpdateQuery.put("taskId", updatedTask.getString("taskId"));
+		// taskUpdateQuery.put("_id", new JsonObject().put("$oid", updatedTask.getJsonObject("_id").getString("$oid")));
+		System.out.println("TaskAssignmentDao : updateTask() - Update Query ==>"+ Json.encodePrettily(taskUpdateQuery));
+		updatedTask.put("$set", new JsonObject().put("taskStatus", updatedTask.getString("taskStatus")));
+		System.out.println("TaskAssignmentDao :: updateTask(), task Update Query =>"+ Json.encodePrettily(taskUpdateQuery) +" , Task to be marked Completed is =>" +Json.encodePrettily(updatedTask));
+		mongoDbClient.findOneAndUpdate(WDS_TASK_TABLE, taskUpdateQuery, updatedTask, taskUpdateRes -> {
 			if (taskUpdateRes.failed()) {
-				// taskUpdateRes.cause();
+				System.out.println("TaskAssignmentDAO :: updateTask() Failed to close task ==>" + taskUpdateRes.cause().getMessage());
 				taskHandler.handle(taskUpdateRes);
 				return;
 			} else {
-				
+				System.out.println("TaskAssignmentDao :: updateTask(), Task Update SUCCESSFUL");
+			}
+		});
+	}*/
+	
+	public void updateTask(String taskId, Handler<AsyncResult<JsonObject>> taskHandler) {
+		JsonObject taskSearchQuery = new JsonObject();
+		taskSearchQuery.put("taskId", taskId);
+		JsonObject taskUpdateQuery = new JsonObject();
+		// taskUpdateQuery.put("_id", new JsonObject().put("$oid", updatedTask.getJsonObject("_id").getString("$oid")));
+		System.out.println("TaskAssignmentDao : updateTask() - Update Query ==>"+ Json.encodePrettily(taskSearchQuery));
+		taskUpdateQuery.put("$set", new JsonObject().put("taskStatus", TaskStatus.COMPLETED.name()));
+		System.out.println("TaskAssignmentDao :: updateTask(), task Update Query =>"+ Json.encodePrettily(taskSearchQuery) +" , Task to be marked Completed is =>" +Json.encodePrettily(taskUpdateQuery));
+		mongoDbClient.findOneAndUpdate(WDS_TASK_TABLE, taskSearchQuery, taskUpdateQuery, taskUpdateRes -> {
+			if (taskUpdateRes.failed()) {
+				System.out.println("TaskAssignmentDAO :: updateTask() Failed to close task ==>" + taskUpdateRes.cause().getMessage());
+				taskHandler.handle(taskUpdateRes);
+				return;
+			} else {
+				System.out.println("TaskAssignmentDao :: updateTask(), Task Update SUCCESSFUL" + Json.encodePrettily(taskUpdateRes.result()));
 			}
 		});
 	}

@@ -121,7 +121,7 @@ public class WorkDistributionServer extends AbstractVerticle {
 				System.out.println("createTask :: Calling TaskAssignmentService-assignTaskToAgent() for Task Assignment.");
 				wdsTaskAssignmentService.assignTaskToAgent(wdsApiContext);
 				System.out.println("createTask :: DONE Calling TaskAssignmentService-assignTaskToAgent(), Task Assigned.");
-				wdsApiContext.response().end(wdsApiContext.getBodyAsString("UTF-8"));
+				wdsApiContext.request().response().setStatusCode(201).end(wdsApiContext.getBodyAsString("UTF-8"));
 			} else {
 				System.out.println("Either Task/ TaskId/ Task-SkillSet are null");
 				handleRequestError(wdsApiContext);
@@ -132,8 +132,8 @@ public class WorkDistributionServer extends AbstractVerticle {
 			System.out.println("Unauthorized Acccess. Please send valid Auth-Token in request Header access_token");
 			wdsApiContext.fail(401);
 			wdsApiContext.fail(401, new WdsApiException("401",
-					"Unauthorized Acccess. Please send valid Auth-Token in request Header access_token", null));
-			wdsApiContext.request().response().end("Unauthorized Acccess. Please send valid Auth-Token in request Header access_token");
+					"Unauthorized Access. Please send valid Auth-Token in request Header access_token", null));
+			wdsApiContext.request().response().end("Unauthorized Access. Please send valid Auth-Token in request Header access_token");
 			return;
 		}
 		*/
@@ -142,16 +142,24 @@ public class WorkDistributionServer extends AbstractVerticle {
 
 	private void closeTask(RoutingContext wdsApiContext) {
 		if (authService.isTrustedUser(wdsApiContext)) {
-			wdsApiContext.fail(401, new WdsApiException(
-					"Unauthorized Acccess. Please send valid Auth-Token in request Header access_token", null));
-			return;
-		}
-		String taskId = wdsApiContext.request().getParam("taskId");
-		if (null != taskId) {
-			wdsTaskAssignmentService.markTaskCompleted(wdsApiContext);
-			wdsApiContext.response().setStatusMessage(new JsonObject().put("result", wdsApiContext.get("task").toString()).encodePrettily());
-		} else {
-			handleRequestError(wdsApiContext);
+			/*
+			 * wdsApiContext.fail(401, new WdsApiException(
+			 * "Unauthorized Access. Please send valid Auth-Token in request Header access_token"
+			 * , null)); return;
+			 */
+
+			String taskId = wdsApiContext.pathParam("taskId");
+			System.out.println("closeTask() - Task ID to Close taskId[" + taskId + "], Req Param =>"
+					+ wdsApiContext.request().getParam("taskId"));
+			if (null != taskId) {
+				System.out.println("closeTask() - Calling TaskService's markTaskCompleted()");
+				wdsTaskAssignmentService.markTaskCompleted(wdsApiContext);
+				// wdsApiContext.response().end(new JsonObject().put("result",
+				// wdsApiContext.get("task").toString()).encodePrettily());
+				System.out.println("closeTask :: Closed Task ID =>" +taskId);
+			} else {
+				handleRequestError(wdsApiContext);
+			}
 		}
 
 	}

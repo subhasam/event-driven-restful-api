@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import subhasys.wds.dao.AgentDao;
 import subhasys.wds.dao.TaskAssignmentDao;
@@ -24,8 +23,6 @@ import subhasys.wds.domain.Agent;
 import subhasys.wds.domain.Skill;
 import subhasys.wds.domain.Task;
 import subhasys.wds.enums.TaskPriority;
-import subhasys.wds.enums.TaskStatus;
-import subhasys.wds.exception.WdsApiException;
 
 /**
  * @author subhasis
@@ -172,7 +169,9 @@ public class TaskAssignmentService {
 			System.out.println("taskAssignment() : Sorry, No Agent with the required skill found for the Task.");
 			//wdsApiContext.response().setStatusCode(500).end("Opps !! Sorry, No Agent with the required skill found for the Task.");
 			//wdsApiContext.fail(500);
-			wdsApiContext.fail(500, new WdsApiException("Opps !! Sorry, No Agent with the required skill found for the Task.", null));
+			wdsApiContext.request().response().setStatusCode(500).setStatusMessage("Opps !! Sorry, No Agent with the required skill found for the Task.");
+			wdsApiContext.fail(500);
+			//wdsApiContext.fail(500, new WdsApiException("Opps !! Sorry, No Agent with the required skill found for the Task.", null));
 			return;
 		} else {
 			System.out.println("taskAssignment() :: Got Agent with matching skill =>" + Json.encodePrettily(selectedAgent));//selectedAgent.get()
@@ -183,7 +182,7 @@ public class TaskAssignmentService {
 			taskRequested.setAssignedAgent(selectedAgent); //selectedAgent.get()
 			System.out.println("taskAssignment() :: Task with Agent =>" + Json.encodePrettily(taskRequested));
 			mapAgentWithTask(taskRequested, wdsApiContext);
-			wdsApiContext.response().setStatusMessage(Json.encodePrettily(taskRequested));
+			wdsApiContext.request().response().setStatusCode(201).end(Json.encodePrettily(taskRequested));
 		} else {
 			// Get Agent with LOWER Priority Task Compared to Requested Task
 			Optional<Agent> agentWithLowPriorityTask = availableAgentList.stream()
@@ -220,7 +219,7 @@ public class TaskAssignmentService {
 		agentDao.updateAgentInfo(taskRequested.getAssignedAgent(), updateHander -> {
 			if (updateHander.succeeded()) {
 				System.out.println("mapAgentWithTask() :: Updating Agent Info with Assigned Task in DB ==>" + Json.encode(taskRequested));
-				wdsApiContext.response().end(Json.encode(taskRequested));
+				wdsApiContext.response().setStatusCode(201).end(Json.encode(taskRequested));
 			} else {
 				System.out.println("mapAgentWithTask() :: Agent info update in DB FAILED ==>" + updateHander.cause().getMessage());
 			}
@@ -257,23 +256,29 @@ public class TaskAssignmentService {
 
 	}
 
-	public void markTaskCompleted(RoutingContext wdsApiContext) {
+	/*public void markTaskCompleted(RoutingContext wdsApiContext) {
 		// TODO - Database Call to Mark Task COMPLETE
-		String taskId = wdsApiContext.request().getParam("taskId");
-		taskAssignmentDao.findTaskById(taskId, asyncTaskhandler -> {
+		String taskId = wdsApiContext.pathParam("taskId"); //wdsApiContext.request().getParam("taskId");
+		System.out.println("markTaskCompleted :: Find Task By ID =>" +taskId);
+		//taskAssignmentDao.findTaskById(taskId, asyncTaskhandler -> {
+		taskAssignmentDao.updateTask(taskId, asyncTaskhandler -> {
 			if (asyncTaskhandler.failed()) {
 				System.out.println("markTaskCompleted :: Find Task By ID failed ==>" + asyncTaskhandler.failed());
 				wdsApiContext.fail(asyncTaskhandler.cause());
 			} else {
 				JsonObject existingTask = asyncTaskhandler.result();
 				if (null == existingTask) {
+					System.out.println("markTaskCompleted :: Task is NULL in DB for Task ID =>" +taskId);
 					wdsApiContext.fail(500);
 				} else {
 					// new JsonObject(Json.encode(completedTask))
 					existingTask.put("taskStatus", TaskStatus.COMPLETED.name());
-					taskAssignmentDao.updateTask(existingTask, taskUpdateHandler -> {
+					System.out.println("markTaskCompleted :: Calling TaskDAO to mark Task Completed =>" +Json.encodePrettily(existingTask));
+					taskAssignmentDao.updateTask(existingTask.getString("taskId"), taskUpdateHandler -> {
 						if (taskUpdateHandler.succeeded()) {
 							wdsApiContext.response().end(existingTask.encodePrettily());
+						} else {
+							System.out.println("TaskAssignment Service :: markTaskCompleted() Failed to close task ==>" + taskUpdateHandler.cause().getMessage());
 						}
 					});
 					// wdsApiContext.put("task", existingTask);
@@ -281,11 +286,39 @@ public class TaskAssignmentService {
 				}
 			}
 		});
-		/*
+		
 		 * if (Objects.nonNull(existingTask)) {
 		 * existingTask.setTaskStatus(TaskStatus.COMPLETED);
 		 * taskAssignmentDao.updateTask(existingTask, null); return existingTask; } else
 		 * { throw new WdsApiException("500", "Request Task does't exist", null); }
-		 */
+		 
+	}*/
+	
+	public void markTaskCompleted(RoutingContext wdsApiContext) {
+		String taskId = wdsApiContext.pathParam("taskId"); //wdsApiContext.request().getParam("taskId");
+		System.out.println("markTaskCompleted :: Find Task By ID =>" +taskId);
+		taskAssignmentDao.updateTask(taskId, asyncTaskhandler -> {
+			if (asyncTaskhandler.failed()) {
+				System.out.println("markTaskCompleted :: Find Task By ID failed ==>" + asyncTaskhandler.failed());
+				wdsApiContext.fail(asyncTaskhandler.cause());
+			} else
+			System.out.println("markTaskCompleted() - Update Successful =>"+ Json.encodePrettily(asyncTaskhandler.result()));
+			wdsApiContext.response().setStatusCode(200).end(Json.encodePrettily(asyncTaskhandler.result()));
+			// wdsApiContext.next();
+			/*
+			if (asyncTaskhandler.failed()) {
+				System.out.println("markTaskCompleted :: Find Task By ID failed ==>" + asyncTaskhandler.failed());
+				wdsApiContext.fail(asyncTaskhandler.cause());
+			} else {
+				JsonObject existingTask = asyncTaskhandler.result();
+				if (null == existingTask) {
+					System.out.println("markTaskCompleted :: Task is NULL in DB for Task ID =>" +taskId);
+					wdsApiContext.fail(500);
+				}
+			}
+			*/
+		});
+		System.out.println("markTaskCompleted() :: DONE Closing Task ID =>" +taskId);
 	}
+	
 }
