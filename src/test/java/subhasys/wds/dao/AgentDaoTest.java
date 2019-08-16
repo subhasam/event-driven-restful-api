@@ -46,7 +46,7 @@ class AgentDaoTest {
 	}
 
 	/**
-	 * Test method for {@link subhasys.wds.dao.AgentDao#getAllAgents(io.vertx.core.Handler)}.
+	 * Test method for {@link subhasys.wds.dao.AgentDao#getAgentWithMatchingSkill(String, io.vertx.core.Handler)}.
 	 */
 	@Test
 	final void testGetAllAgents() {

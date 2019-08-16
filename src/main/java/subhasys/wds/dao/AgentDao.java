@@ -39,9 +39,9 @@ public class AgentDao {
 
 	}
 
-	public void getAllAgents(Handler<AsyncResult<List<JsonObject>>> agentSearchHandler) {
+	public void getAgentWithMatchingSkill(final String requiredSkill, Handler<AsyncResult<List<JsonObject>>> agentSearchHandler) {
 		JsonObject availableAgentsQuery = new JsonObject();
-		availableAgentsQuery.put(COLUMN_AVILABLE_AGENT, true);
+		availableAgentsQuery.put(COLUMN_SKILL, requiredSkill);
 		mongoDbClient.find(WDS_AGENT_TABLE, availableAgentsQuery, agentSearchHandler);
 	}
 

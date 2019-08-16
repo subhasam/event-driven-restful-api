@@ -45,20 +45,10 @@ public class TaskAssignmentDao {
 
 	}
 	
-	private List<JsonObject> getAllTasksInProgress() { //AsyncResult<JsonObject> agentRetrievalHandler
+	private List<JsonObject> getAllTasksInProgress() {
 		List<JsonObject> wdsTaskList = new ArrayList<>();
 		JsonObject taskListQuery = new JsonObject();
 		taskListQuery.put("taskStatus", TaskStatus.INPROGRESS.toString());
-		/*
-		mongoDbClient.find(WDS_AGENT_TABLE, taskListQuery, resultHandler -> {
-			if (resultHandler.succeeded()) {
-				wdsTaskList.addAll(resultHandler.result());
-				return;
-			} else {
-				resultHandler.otherwiseEmpty();
-			}
-		});
-		*/
 		final FindOptions taskSearchOption = new FindOptions();
 		taskSearchOption.setSort(new JsonObject().put("startTime", -1));
 		taskSearchOption.setLimit(1);
@@ -86,11 +76,11 @@ public class TaskAssignmentDao {
 
 	}
 
-	public void updateTask(String taskId, Handler<AsyncResult<JsonObject>> taskHandler) {
+	public void updateTask(final String taskId, final String taskStatus, Handler<AsyncResult<JsonObject>> taskHandler) {
 		JsonObject taskSearchQuery = new JsonObject();
 		taskSearchQuery.put("taskId", taskId);
 		JsonObject taskUpdateQuery = new JsonObject();
-		taskUpdateQuery.put("$set", new JsonObject().put("taskStatus", TaskStatus.COMPLETED.name()));
+		taskUpdateQuery.put("$set", new JsonObject().put("taskStatus", taskStatus));
 		System.out.println("TaskAssignmentDao :: updateTask() - Updating Task in DB as COMPLETED. TaskId =>" + taskId);
 		/*
 		mongoDbClient.findOneAndUpdate(WDS_TASK_TABLE, taskSearchQuery, taskUpdateQuery, taskUpdateRes -> {
