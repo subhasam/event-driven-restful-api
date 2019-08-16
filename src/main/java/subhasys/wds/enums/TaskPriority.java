@@ -32,12 +32,12 @@ public enum TaskPriority {
 		return priority;
 	}
 	
-	private static Map<Object, TaskPriority> FORMAT_MAP = Stream.of(TaskPriority.values())
+	private static Map<Object, TaskPriority> TASK_PRIORITY_MAP = Stream.of(TaskPriority.values())
 			.collect(Collectors.toMap(s -> s.priority, Function.identity()));
 	
 	@JsonCreator
 	public static TaskPriority fromString(int priority) {
-		return Optional.ofNullable(FORMAT_MAP.get(priority)).orElseThrow(() -> new IllegalArgumentException());
+		return Optional.ofNullable(TASK_PRIORITY_MAP.get(priority)).orElseThrow(() -> new IllegalArgumentException());
 	}
 
 }

@@ -14,7 +14,7 @@ public class WdsApiException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 4005637728844308987L;
 
-	private String errorMessage;
+	private final String errorMessage;
 
 	/**
 	 * @param errorMessage

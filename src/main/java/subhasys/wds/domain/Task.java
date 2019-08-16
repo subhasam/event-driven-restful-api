@@ -9,9 +9,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import subhasys.wds.enums.TaskPriority;
 
 /**
@@ -29,7 +31,8 @@ public class Task implements Serializable {
 	private static final long serialVersionUID = 9169178187316484884L;
 
 	private String taskId;
-	private TaskPriority taskPriority;
+	@JsonEnumDefaultValue
+	private int taskPriority;
 	private Set<Skill> requiredSkillSet;
 	private Agent assignedAgent;
 	private String taskStatus;
@@ -49,10 +52,10 @@ public class Task implements Serializable {
 	 * @param assignedAgent
 	 * @param taskStatus
 	 */
-	public Task(String taskId, TaskPriority taskPriority, Set<Skill> requiredSkillSet, Agent assignedAgent,
+	public Task(String taskId, int taskPriority, Set<Skill> requiredSkillSet, Agent assignedAgent,
 			String taskStatus) {
 		this.taskId = taskId;
-		this.taskPriority = taskPriority;
+		this.taskPriority = taskPriority; //TaskPriority.fromString(taskPriority);
 		this.requiredSkillSet = requiredSkillSet;
 		this.assignedAgent = assignedAgent;
 		this.taskStatus = taskStatus;
@@ -75,14 +78,14 @@ public class Task implements Serializable {
 	/**
 	 * @return the taskPriority
 	 */
-	public TaskPriority getTaskPriority() {
+	public int getTaskPriority() {
 		return taskPriority;
 	}
 
 	/**
 	 * @param taskPriority the taskPriority to set
 	 */
-	public void setTaskPriority(TaskPriority taskPriority) {
+	public void setTaskPriority(int taskPriority) {
 		this.taskPriority = taskPriority;
 	}
 
@@ -145,8 +148,8 @@ public class Task implements Serializable {
 	@Override
 	public String toString() {
 		return String.format(
-				"Task [taskId=%s, taskPriority=%s, requiredSkillSet=%s, taskStatus=%s, startTime=%s, endTime=%s]",
-				taskId, taskPriority, requiredSkillSet, taskStatus, startTime);
+				"Task [taskId=%s, taskPriority=%s, taskStatus=%s, startTime=%s]",
+				taskId, taskPriority, taskStatus, startTime);
 	}
 
 	@Override
@@ -172,10 +175,16 @@ public class Task implements Serializable {
 
 	// Test
 	public static void main(String args[]) {
-		Skill skill = new Skill("s1", "Painting");
-		Set<Skill> skillSet = new HashSet<Skill>();
+		Skill skill = new Skill("ProblemSolving", "s1");
+		Set<Skill> skillSet = new HashSet<>();
 		skillSet.add(skill);
-		System.out.println(Json.encodePrettily(new Task("1111", TaskPriority.HIGH, skillSet, null, "NEW")));
+		Agent assignedAgent = new Agent("9999", "John Doe", "Engineering", skillSet, 2, true);
+		String reqTask = Json.encode(new Task("1111", 2, skillSet, assignedAgent, "NEW"));
+		System.out.println(reqTask);
+		JsonObject taskJson = new JsonObject(reqTask);
+		//taskJson.put("taskPriority", TaskPriority.fromString(2));
+		System.out.println(Json.decodeValue(taskJson.encode(), Task.class));
+		System.out.println(TaskPriority.NA.getPriority());
 	}
 
 }

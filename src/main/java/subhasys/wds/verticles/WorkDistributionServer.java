@@ -21,7 +21,6 @@ import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.mongo.MongoClient;
 import subhasys.wds.dao.AgentDao;
 import subhasys.wds.dao.TaskAssignmentDao;
-import subhasys.wds.exception.WdsApiException;
 import subhasys.wds.services.TaskAssignmentService;
 import subhasys.wds.services.WdsAuthenicationService;
 
@@ -47,31 +46,24 @@ public class WorkDistributionServer extends AbstractVerticle {
 	@Override
 	public void start(Future<Void> futureResult) {
 		JsonObject wdsMongoConfig = WorkDistributionDatabaseServer.getWdsMongoDbConfig();
-		System.out.println("WorkDistributionServer :: start() - Creating Mongo DB instance with configuration " + wdsMongoConfig.encodePrettily());
 		try {
 			wdsMongoClient = MongoClient.createShared(vertx, wdsMongoConfig);
 		} catch (Exception dbExcp) {
-			dbExcp.printStackTrace();
 			futureResult.fail(dbExcp);
 			return;
 		}
-		System.out.println("WorkDistributionServer :: start() - DONE Creating Mongo DB instance");
 		
 		TaskAssignmentDao taskAssignmentDao = new TaskAssignmentDao(wdsMongoClient);
 		AgentDao agentDao = new AgentDao(wdsMongoClient);
 		wdsTaskAssignmentService = new TaskAssignmentService(taskAssignmentDao, agentDao);
 		authService = new WdsAuthenicationService();
-		System.out.println("WorkDistributionServer :: start() - Creating HttpServer");
 		wdsApiServer = vertx.createHttpServer(wdsServerOptions());
-		System.out.println("WorkDistributionServer :: start() - DONE Creating HttpServer");
 		wdsApiServer.requestHandler();
 		wdsApiServer.requestHandler(workDistributionApiRouter());
 		wdsApiServer.listen(serverStartUpResult -> {
 			if (serverStartUpResult.succeeded()) {
-				System.out.println("WorkDistributionServer :: workDistributionApiRouter() - Server Start Up SUCCESSFUL..");
 				futureResult.complete();
 			} else {
-				System.out.println("WorkDistributionServer :: workDistributionApiRouter() - Server Start Up FAILED..");
 				futureResult.fail(serverStartUpResult.cause());
 			}
 		});
@@ -79,7 +71,6 @@ public class WorkDistributionServer extends AbstractVerticle {
 	}
 	
 	private Router workDistributionApiRouter() {
-		System.out.println("WorkDistributionServer :: workDistributionApiRouter() - Creating WDS-API Routers");
 		Router wdsApiRouter = Router.router(vertx);
 		
 		wdsApiRouter.route().consumes(APPLICATION_JSON).produces(APPLICATION_JSON)
@@ -96,7 +87,6 @@ public class WorkDistributionServer extends AbstractVerticle {
 		wdsApiRouter.post(String.format("%s%s", WDS_API_BASE_URI, "/tasks")).handler(this::createTask);
 		wdsApiRouter.post(String.format("%s%s", WDS_API_BASE_URI, "/tasks/:taskId")).handler(this::closeTask);
 
-		System.out.println("WorkDistributionServer :: workDistributionApiRouter() - DONE Creating WDS-API Routers");
 		return wdsApiRouter;
 
 	}
@@ -111,52 +101,26 @@ public class WorkDistributionServer extends AbstractVerticle {
 	}
 
 	private void checkApiHealth(RoutingContext wdsApiContext) {
-		wdsApiContext.request().response().end("Health-Check : Work Distribution API is Up Running...");
-		return;
+		wdsApiContext.request().response().setStatusCode(200).end("Health-Check : Work Distribution API is Up Running...");
 	}
 
 	private void createTask(RoutingContext wdsApiContext) {
 		if (authService.isTrustedUser(wdsApiContext)) {
-			if (wdsTaskAssignmentService.isValidateTaskRequest(wdsApiContext)) {
-				System.out.println("createTask :: Calling TaskAssignmentService-assignTaskToAgent() for Task Assignment.");
-				wdsTaskAssignmentService.assignTaskToAgent(wdsApiContext);
-				System.out.println("createTask :: DONE Calling TaskAssignmentService-assignTaskToAgent(), Task Assigned.");
-				wdsApiContext.request().response().setStatusCode(201).end(wdsApiContext.getBodyAsString("UTF-8"));
+			if (wdsTaskAssignmentService.isValidatTaskRequest(wdsApiContext)) {
+				wdsTaskAssignmentService.executeTaskAssignment(wdsApiContext);
+				System.out.println("WorkDistributionServer:: createTask() - DONE Assigning Agent to Task");
 			} else {
-				System.out.println("Either Task/ TaskId/ Task-SkillSet are null");
 				handleRequestError(wdsApiContext);
+				
 			}
 		}
-		/*
-		if (authService.isTrustedUser(wdsApiContext)) {
-			System.out.println("Unauthorized Acccess. Please send valid Auth-Token in request Header access_token");
-			wdsApiContext.fail(401);
-			wdsApiContext.fail(401, new WdsApiException("401",
-					"Unauthorized Access. Please send valid Auth-Token in request Header access_token", null));
-			wdsApiContext.request().response().end("Unauthorized Access. Please send valid Auth-Token in request Header access_token");
-			return;
-		}
-		*/
-
 	}
 
 	private void closeTask(RoutingContext wdsApiContext) {
 		if (authService.isTrustedUser(wdsApiContext)) {
-			/*
-			 * wdsApiContext.fail(401, new WdsApiException(
-			 * "Unauthorized Access. Please send valid Auth-Token in request Header access_token"
-			 * , null)); return;
-			 */
-
 			String taskId = wdsApiContext.pathParam("taskId");
-			System.out.println("closeTask() - Task ID to Close taskId[" + taskId + "], Req Param =>"
-					+ wdsApiContext.request().getParam("taskId"));
-			if (null != taskId) {
-				System.out.println("closeTask() - Calling TaskService's markTaskCompleted()");
+			if (null != taskId && !taskId.isEmpty()) {
 				wdsTaskAssignmentService.markTaskCompleted(wdsApiContext);
-				// wdsApiContext.response().end(new JsonObject().put("result",
-				// wdsApiContext.get("task").toString()).encodePrettily());
-				System.out.println("closeTask :: Closed Task ID =>" +taskId);
 			} else {
 				handleRequestError(wdsApiContext);
 			}
@@ -165,15 +129,12 @@ public class WorkDistributionServer extends AbstractVerticle {
 	}
 
 	private void handleRequestError(RoutingContext wdsApiContext) {
-		//wdsApiContext.fail(statusCode);
-		//wdsApiContext.fail(405, new WdsApiException("405", "Required Task Details are not present", null));
-		wdsApiContext.response().setStatusCode(405).end("Required Task Details are not present");
-		return;
+		wdsApiContext.request().response().setStatusCode(400).end("Required Task Details are not present in the request");
 	}
 
 	private HttpServerOptions wdsServerOptions() {
 		HttpServerOptions httpServerOption = new HttpServerOptions();
-		httpServerOption.setHost("localhost");//\"localhost\"
+		httpServerOption.setHost("localhost");
 		httpServerOption.setPort(9090);
 		return httpServerOption;
 	}

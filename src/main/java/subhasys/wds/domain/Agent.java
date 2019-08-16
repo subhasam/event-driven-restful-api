@@ -30,7 +30,7 @@ public class Agent implements Serializable {
 	private String fullName;
 	private String skill;
 	private Set<Skill> skillSet;
-	private TaskPriority assignedTaskPriority;
+	private int assignedTaskPriority;
 	private boolean available;
 
 	/**
@@ -48,14 +48,14 @@ public class Agent implements Serializable {
 	 * @param assignedTaskPriority
 	 * @param available
 	 */
-	public Agent(String agentId, String fullName, String skill, Set<Skill> skillSet, TaskPriority assignedTaskPriority,
+	public Agent(String agentId, String fullName, String skill, Set<Skill> skillSet, int assignedTaskPriority,
 			boolean available) {
 		super();
 		this.agentId = agentId;
 		this.fullName = fullName;
 		this.skill = skill;
 		this.skillSet = skillSet;
-		this.assignedTaskPriority = assignedTaskPriority;
+		this.assignedTaskPriority = assignedTaskPriority; //TaskPriority.fromString(assignedTaskPriority);
 		this.available = available;
 	}
 
@@ -132,14 +132,14 @@ public class Agent implements Serializable {
 	/**
 	 * @return the assignedTaskPriority
 	 */
-	public TaskPriority getAssignedTaskPriority() {
+	public int getAssignedTaskPriority() {
 		return assignedTaskPriority;
 	}
 
 	/**
 	 * @param assignedTaskPriority the assignedTaskPriority to set
 	 */
-	public void setAssignedTaskPriority(TaskPriority assignedTaskPriority) {
+	public void setAssignedTaskPriority(int assignedTaskPriority) {
 		this.assignedTaskPriority = assignedTaskPriority;
 	}
 

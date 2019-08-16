@@ -5,6 +5,7 @@ package subhasys.wds.services;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import subhasys.wds.dao.AgentDao;
 import subhasys.wds.dao.TaskAssignmentDao;
@@ -23,6 +25,7 @@ import subhasys.wds.domain.Agent;
 import subhasys.wds.domain.Skill;
 import subhasys.wds.domain.Task;
 import subhasys.wds.enums.TaskPriority;
+import subhasys.wds.enums.TaskStatus;
 
 /**
  * @author subhasis
@@ -41,190 +44,127 @@ public class TaskAssignmentService {
 	public TaskAssignmentService(TaskAssignmentDao taskAssignmentDao, AgentDao agentDao) {
 		this.taskAssignmentDao = taskAssignmentDao;
 		this.agentDao = agentDao;
-		System.out.println("TaskAssignmentService - DONE Creating TaskAssignmentService");
 	}
 
-	public boolean isValidateTaskRequest(RoutingContext wdsApiContext) {
-		System.out.println("TaskAssignmentService : isValidateTaskRequest() - Received New Task ==> " + Json.encodePrettily(wdsApiContext.getBodyAsJson()));//getValue("task")
-		// wdsApiContext.getBodyAsJson().getValue("task");
+	public boolean isValidatTaskRequest(RoutingContext wdsApiContext) {
 		Task requestedTask = null;
 		try {
 			requestedTask = Json.decodeValue(wdsApiContext.getBodyAsString("UTF-8"), Task.class);
 		} catch (DecodeException decodExcp) {
+			System.out.println("TaskAssignmentService: isValidatTaskRequest() - Error Parsing Task");
 			decodExcp.printStackTrace();
+			wdsApiContext.fail(500, decodExcp);
 		}
 		
-		System.out.println("TaskAssignmentService : isValidateTaskRequest() - Parsed Task for Validation ==> " + Json.encodePrettily(requestedTask));
-		System.out.println(" Task is Null ? : " + Objects.isNull(requestedTask) + ", Task ID Null ? : " + Objects.isNull(requestedTask.getTaskId())
-		+ ", SkillSet Null ? : "+ Objects.isNull(requestedTask.getRequiredSkillSet()));
-		return Objects.nonNull(requestedTask) && Objects.nonNull(requestedTask.getTaskId()) && Objects.nonNull(requestedTask.getRequiredSkillSet());
+		return Objects.nonNull(requestedTask) && Objects.nonNull(requestedTask.getTaskId())
+				&& !requestedTask.getTaskId().isEmpty() && Objects.nonNull(requestedTask.getRequiredSkillSet())
+				&& !requestedTask.getRequiredSkillSet().isEmpty();
 
 	}
 	
-	public void assignTaskToAgent(RoutingContext wdsApiContext) {
-		System.out.println("assignTaskToAgent() :: Going to pull Available Agents from DB.");
-		// List<Agent> agentsList = agentDao.getAllAgents().stream().collect(Collectors.toList());
-		//List<Agent> agentsList = Json.decodeValue(agentDao.getAllAgents().toString(), ArrayList.class);
+	public void executeTaskAssignment(RoutingContext wdsApiContext) {
 		List<Agent> availableAgentList = new ArrayList<>();
 		agentDao.getAllAgents(agentSearchHandler -> {
 			if (agentSearchHandler.succeeded()) {
-				System.out.println("assignTaskToAgent() : Total Agents from MongoDB = " + agentSearchHandler.result());
 				Json.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-					/*
-					 * agentSearchHandler.result() .forEach(agent ->
-					 * availableAgentList.add(Json.decodeValue(agent.encode(), Agent.class)));
-					 */
 					agentSearchHandler.result()
 							.forEach(agent -> {
 								try {
-									availableAgentList.add(Json.mapper.readValue(agent.encodePrettily(), Agent.class));
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
+									availableAgentList.add(Json.mapper.readValue(agent.encode(), Agent.class));
+								} catch (IOException ioExcp) {
+									// suppress error - e.printStackTrace();
+									ioExcp.printStackTrace();
 								}
 							});
-					/*availableAgentList.add(Json.mapper.readValue(agentSearchHandler.result().stream().toString(),
-							new TypeReference<List<Agent>>() {
-							}));*/
-				//return;
-				System.out.println("assignTaskToAgent() :: Got Agent List \n" + Json.encodePrettily(availableAgentList));
+				System.out.println("TaskAssignmentService :: executeTaskAssignment() - Total Available Agents = "+ availableAgentList.size());
 			} else {
-				System.out.println("assignTaskToAgent() : No Agents found or Query Failed");
+				System.out.println("TaskAssignmentService :: executeTaskAssignment() - No Agenst found.");
 				agentSearchHandler.otherwiseEmpty();
 			}
-			System.out.println("assignTaskToAgent() : Got Agent List");
 			try {
-				taskAssignment(availableAgentList, wdsApiContext);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				assignTaskToAgent(availableAgentList, wdsApiContext);
+			} catch (IOException ioExcp) {
+				wdsApiContext.fail(500, ioExcp);
+				return;
 			}
 		});
 		
-		// Agent selectedAgent = null;
-		/*
-		 * for (Agent availableAgent : agentsList) { if
-		 * (isAgentEligibleForTask(availableAgent, taskRequested)) { selectedAgent =
-		 * availableAgent; taskRequested.setAssignedAgent(selectedAgent); break; }
-		 * 
-		 * }
-		 */
-		// Find the Eligible Agent - moved to taskAssignment()
-		
-		/*
-		Optional<Agent> selectedAgent = availableAgentList.stream()
-				.filter(availableAgent -> isAgentEligibleForTask(availableAgent, taskRequested)).findFirst();
-		// No Eligible Agent found with the required Skill
-		if (Objects.isNull(selectedAgent)) {
-			System.out.println("assignTaskToAgent() : Sorry, No Agent with the required skill found for the Task.");
-			wdsApiContext.response().setStatusCode(500).end("Opps !! Sorry, No Agent with the required skill found for the Task.");
-			wdsApiContext.fail(500);
-		}
-		// Is Agent with required Skill Available ?
-		if ( null != selectedAgent && selectedAgent.get().isAvailable()) {
-			taskRequested.setAssignedAgent(selectedAgent.get());
-		} else {
-
-			// Get Agent with LOWER Priority Task Compared to Requested Task
-			Optional<Agent> agentWithLowPriorityTask = availableAgentList.stream()
-					.filter(agent -> agent.getAssignedTaskPriority().getPriority() < taskRequested.getTaskPriority()
-							.getPriority()
-							&& TaskPriority.HIGH.name().equalsIgnoreCase(taskRequested.getTaskPriority().name()))
-					.findFirst();
-
-			// With Same Task Priority : Get Agent with Most Recent Task Priority
-			taskRequested.setAssignedAgent(Optional.ofNullable(agentWithLowPriorityTask.get())
-					.orElse(taskAssignmentDao.getAgentWithMostRecentTask().getAssignedAgent()));
-		}
-
-		// Save Task with assigned Agent
-		taskRequested.setStartTime(LocalDateTime.now());
-		taskAssignmentDao.createTask(taskRequested, taskCreator -> {
-			if (taskCreator.succeeded()) {
-				System.out.println("Task Creation successful");
-			}
-		});
-		
-		// selectedAgent.get().setAvailable(false);
-		// selectedAgent.get().setAssignedTaskPriority(taskRequested.getTaskPriority());
-		
-
-		// Update Agent with Current Assigned Task
-		agentDao.updateAgentInfo(taskRequested.getAssignedAgent(), updateHander -> {
-			if (updateHander.succeeded()) {
-				wdsApiContext.response().end(Json.encode(taskRequested));
-			}
-		});
-		*/
 	}
 	
-	private void taskAssignment(List<Agent> availableAgentList, RoutingContext wdsApiContext) throws JsonParseException, JsonMappingException, IOException {
-		System.out.println("taskAssignment() :: Getting Task from RoutingContext.");
+	private void assignTaskToAgent(List<Agent> availableAgentList, RoutingContext wdsApiContext) throws IOException {
+		System.out.println("TaskAssignmentService :: assignTaskToAgent() - Assigning Agent with requested Task.");
 		Task taskRequested = Json.mapper.readValue(wdsApiContext.getBodyAsString("UTF-8"), Task.class);
-		//Optional<Agent> selectedAgent
 		Agent selectedAgent = availableAgentList.stream()
 				.filter(availableAgent -> isAgentEligibleForTask(availableAgent, taskRequested)).findFirst().orElse(null);
 		// No Eligible Agent found with the required Skill
 		if (Objects.isNull(selectedAgent)) {
-			System.out.println("taskAssignment() : Sorry, No Agent with the required skill found for the Task.");
-			//wdsApiContext.response().setStatusCode(500).end("Opps !! Sorry, No Agent with the required skill found for the Task.");
-			//wdsApiContext.fail(500);
-			wdsApiContext.request().response().setStatusCode(500).setStatusMessage("Opps !! Sorry, No Agent with the required skill found for the Task.");
+			System.out.println("TaskAssignmentService :: assignTaskToAgent() - Oops !! Sorry, No Agent with the required skill is found for the Task.");
+			wdsApiContext.request().response().setStatusCode(500).setStatusMessage("Oops !! Sorry, No Agent with the required skill found for the Task.");
 			wdsApiContext.fail(500);
-			//wdsApiContext.fail(500, new WdsApiException("Opps !! Sorry, No Agent with the required skill found for the Task.", null));
 			return;
-		} else {
-			System.out.println("taskAssignment() :: Got Agent with matching skill =>" + Json.encodePrettily(selectedAgent));//selectedAgent.get()
 		}
 		// Is Agent with required Skill Available ?
-		// if ( selectedAgent.isPresent() && selectedAgent.get().isAvailable()) {
-		if ( selectedAgent.isAvailable()) {
-			taskRequested.setAssignedAgent(selectedAgent); //selectedAgent.get()
-			System.out.println("taskAssignment() :: Task with Agent =>" + Json.encodePrettily(taskRequested));
+		if ( selectedAgent != null && selectedAgent.isAvailable()) {
+			taskRequested.setAssignedAgent(selectedAgent);
+			System.out.println("TaskAssignmentService :: assignTaskToAgent() - Task with Assigned Agents is =>" + Json.encodePrettily(taskRequested));
 			mapAgentWithTask(taskRequested, wdsApiContext);
-			wdsApiContext.request().response().setStatusCode(201).end(Json.encodePrettily(taskRequested));
+			//TODO - Verify if this Response Handling needed here or already taken care in mapAgentWithTask()
+			System.out.println("TaskAssignmentService :: taskAssignment() - DONE Assigning Agent to Task");
+			wdsApiContext.request().response().setStatusCode(201).end(Json.encode(taskRequested));
+			return;
 		} else {
 			// Get Agent with LOWER Priority Task Compared to Requested Task
 			Optional<Agent> agentWithLowPriorityTask = availableAgentList.stream()
-					.filter(agent -> agent.getAssignedTaskPriority().getPriority() < taskRequested.getTaskPriority()
-							.getPriority()
-							&& TaskPriority.HIGH.getPriority() == taskRequested.getTaskPriority().getPriority())
+					.filter(agent -> agent.getAssignedTaskPriority() < taskRequested.getTaskPriority()
+							&& TaskPriority.HIGH.getPriority() == taskRequested.getTaskPriority())
 					.findFirst();
 			if (agentWithLowPriorityTask.isPresent()) {
-				mapAgentWithTask(taskRequested, wdsApiContext);
+				taskRequested.setAssignedAgent(agentWithLowPriorityTask.get());
+				//TODO - Verify Recent task
+				// mapAgentWithTask(taskRequested, wdsApiContext);
+			} else {
+				// With Same Task Priority : Get Agent with Most Recent Task Priority
+				Task interruptedTask = taskAssignmentDao.getAgentWithMostRecentTask();
+				if (null == interruptedTask) {
+					wdsApiContext.request().response().setStatusCode(500).end("Sorry, currently no Agent is available to execute this task. We'll assign this task as soon eligible Agent is available.");
+					wdsApiContext.fail(500);
+					return;
+				}
+				taskRequested.setAssignedAgent(interruptedTask.getAssignedAgent());
 			}
+			mapAgentWithTask(taskRequested, wdsApiContext);
+			
 			// With Same Task Priority : Get Agent with Most Recent Task Priority
-			taskRequested.setAssignedAgent(Optional.ofNullable(agentWithLowPriorityTask.get())
-					.orElse(taskAssignmentDao.getAgentWithMostRecentTask().getAssignedAgent()));
+			/*taskRequested.setAssignedAgent(Optional.ofNullable(agentWithLowPriorityTask.get())
+					.orElse(taskAssignmentDao.getAgentWithMostRecentTask().getAssignedAgent()));*/
 		}
 	}
 	
-	private void mapAgentWithTask(Task taskRequested, RoutingContext wdsApiContext) {
-		System.out.println("mapAgentWithTask() :: Creating Task");
+	private void mapAgentWithTask(Task taskWithAssignedAgent, RoutingContext wdsApiContext) {
 		// Save Task with assigned Agent
-		taskAssignmentDao.createTask(taskRequested, taskCreator -> {
-			if (taskCreator.succeeded()) {
-				System.out.println("mapAgentWithTask() :: Task Creation SUCCESSFUL");
-			} else {
-				System.out.println("mapAgentWithTask() :: Task Creation FAILED ==>"+ taskCreator.cause().getMessage());
+		taskAssignmentDao.createTask(taskWithAssignedAgent, taskCreator -> {
+			if (taskCreator.failed()) {
+				System.out.println("TaskAssignmentService :: mapAgentWithTask() - FAILED Assigning Agent to Task");
+				wdsApiContext.request().response().setStatusCode(500).end("Error : Failed to Assign Agent to Requed Task.");
 				wdsApiContext.fail(500);
+				return;
 			}
+			System.out.println("TaskAssignmentService :: mapAgentWithTask() - DONE Assigning Agent to Task");
+			//Task Creation Successful. Update Agent with Current Assigned Task
+			Agent assignedAgent = taskWithAssignedAgent.getAssignedAgent();
+			assignedAgent.setAvailable(false);
+			assignedAgent.setAssignedTaskPriority(taskWithAssignedAgent.getTaskPriority());
+			agentDao.updateAgentInfo(assignedAgent, updateHander -> {
+				System.out.println("TaskAssignmentService :: mapAgentWithTask() - DONE Updating Agent Assignment");
+				if (updateHander.succeeded()) {
+					wdsApiContext.request().response().setStatusCode(201).end(Json.encode(taskWithAssignedAgent));
+					return;
+				} else {
+					System.out.println("TaskAssignmentService :: mapAgentWithTask() - FAILED Updating Agent Assignment");
+				}
+			});
 		});
 		
-		/*
-		selectedAgent.get().setAvailable(false);
-		selectedAgent.get().setAssignedTaskPriority(taskRequested.getTaskPriority());
-		*/
-		// Update Agent with Current Assigned Task
-		agentDao.updateAgentInfo(taskRequested.getAssignedAgent(), updateHander -> {
-			if (updateHander.succeeded()) {
-				System.out.println("mapAgentWithTask() :: Updating Agent Info with Assigned Task in DB ==>" + Json.encode(taskRequested));
-				wdsApiContext.response().setStatusCode(201).end(Json.encode(taskRequested));
-			} else {
-				System.out.println("mapAgentWithTask() :: Agent info update in DB FAILED ==>" + updateHander.cause().getMessage());
-			}
-		});
-
 	}
 
 	public boolean isAgentEligibleForTask(Agent agent, Task task) {
@@ -234,91 +174,54 @@ public class TaskAssignmentService {
 		boolean agentEligibility = false;
 
 		// Verify if either Task Skills OR Agent Skills are null
-		if (Objects.isNull(agentSkill) || Objects.isNull(skillSetsRequiredByTask)) {
+		if (Objects.isNull(agentSkill) || agentSkill.isEmpty() || 
+			Objects.isNull(skillSetsRequiredByTask) || skillSetsRequiredByTask.isEmpty()) {
+			System.out.println(
+					"TaskAssignmentService :: isAgentEligibleForTask() - Either Task Skills OR Agent Skills are null, agentEligibility =>"
+							+ agentEligibility);
 			return agentEligibility;
 		}
-		
-		/*
-		 * for (Skill requiredSkill : skillSetsRequiredByTask) { if (null !=
-		 * requiredSkill && !agentSkillsSet.contains(requiredSkill)) { return false;
-		 * 
-		 * } }
-		 */
-		/*
-		agentEligibility = skillSetsRequiredByTask.stream()
-				.anyMatch(requiredSkill -> Objects.nonNull(requiredSkill) && !agentSkillsSet.contains(requiredSkill));
-		*/
 		agentEligibility = skillSetsRequiredByTask.stream()
 				.anyMatch(requiredSkill -> Objects.nonNull(requiredSkill) && agentSkill.equalsIgnoreCase(requiredSkill.getSkillName()));
-		System.out.println("isAgentEligibleForTask() :: Agent Elibility ==> "+agentEligibility);
 
+		System.out.println("TaskAssignmentService :: isAgentEligibleForTask() - Skill Matching Found =>"+ agentEligibility);
 		return agentEligibility;
 
 	}
 
-	/*public void markTaskCompleted(RoutingContext wdsApiContext) {
-		// TODO - Database Call to Mark Task COMPLETE
-		String taskId = wdsApiContext.pathParam("taskId"); //wdsApiContext.request().getParam("taskId");
-		System.out.println("markTaskCompleted :: Find Task By ID =>" +taskId);
-		//taskAssignmentDao.findTaskById(taskId, asyncTaskhandler -> {
-		taskAssignmentDao.updateTask(taskId, asyncTaskhandler -> {
-			if (asyncTaskhandler.failed()) {
-				System.out.println("markTaskCompleted :: Find Task By ID failed ==>" + asyncTaskhandler.failed());
-				wdsApiContext.fail(asyncTaskhandler.cause());
-			} else {
-				JsonObject existingTask = asyncTaskhandler.result();
-				if (null == existingTask) {
-					System.out.println("markTaskCompleted :: Task is NULL in DB for Task ID =>" +taskId);
-					wdsApiContext.fail(500);
-				} else {
-					// new JsonObject(Json.encode(completedTask))
-					existingTask.put("taskStatus", TaskStatus.COMPLETED.name());
-					System.out.println("markTaskCompleted :: Calling TaskDAO to mark Task Completed =>" +Json.encodePrettily(existingTask));
-					taskAssignmentDao.updateTask(existingTask.getString("taskId"), taskUpdateHandler -> {
-						if (taskUpdateHandler.succeeded()) {
-							wdsApiContext.response().end(existingTask.encodePrettily());
-						} else {
-							System.out.println("TaskAssignment Service :: markTaskCompleted() Failed to close task ==>" + taskUpdateHandler.cause().getMessage());
-						}
-					});
-					// wdsApiContext.put("task", existingTask);
-					// wdsApiContext.next();
-				}
-			}
-		});
-		
-		 * if (Objects.nonNull(existingTask)) {
-		 * existingTask.setTaskStatus(TaskStatus.COMPLETED);
-		 * taskAssignmentDao.updateTask(existingTask, null); return existingTask; } else
-		 * { throw new WdsApiException("500", "Request Task does't exist", null); }
-		 
-	}*/
-	
+
 	public void markTaskCompleted(RoutingContext wdsApiContext) {
-		String taskId = wdsApiContext.pathParam("taskId"); //wdsApiContext.request().getParam("taskId");
-		System.out.println("markTaskCompleted :: Find Task By ID =>" +taskId);
+		String taskId = wdsApiContext.pathParam(COLUMN_TASK_ID);
 		taskAssignmentDao.updateTask(taskId, asyncTaskhandler -> {
-			if (asyncTaskhandler.failed()) {
-				System.out.println("markTaskCompleted :: Find Task By ID failed ==>" + asyncTaskhandler.failed());
+			if ( null == asyncTaskhandler.result() || asyncTaskhandler.failed()) {
+				wdsApiContext.request().response().setStatusCode(500).end("Oops!! Something went wrong. No action needed. We'll process your request in some time.");
 				wdsApiContext.fail(asyncTaskhandler.cause());
-			} else
-			System.out.println("markTaskCompleted() - Update Successful =>"+ Json.encodePrettily(asyncTaskhandler.result()));
-			wdsApiContext.response().setStatusCode(200).end(Json.encodePrettily(asyncTaskhandler.result()));
-			// wdsApiContext.next();
-			/*
-			if (asyncTaskhandler.failed()) {
-				System.out.println("markTaskCompleted :: Find Task By ID failed ==>" + asyncTaskhandler.failed());
-				wdsApiContext.fail(asyncTaskhandler.cause());
-			} else {
-				JsonObject existingTask = asyncTaskhandler.result();
-				if (null == existingTask) {
-					System.out.println("markTaskCompleted :: Task is NULL in DB for Task ID =>" +taskId);
-					wdsApiContext.fail(500);
-				}
+				return;
 			}
-			*/
+			System.out.println("TaskAssignmentService :: markTaskCompleted() - Task Marked as Complete, TaskId =>"
+					+ taskId + "\n" + Json.encodePrettily(asyncTaskhandler.result()));
+			JsonObject closedTask = asyncTaskhandler.result().put("taskStatus", TaskStatus.COMPLETED.name());
+			closedTask.put("available", true);
+			closedTask.put("assignedTaskPriority", TaskPriority.NA.getPriority());
+			try {
+				Agent assignedAgent = Json.decodeValue(closedTask.getString("assignedAgent"), Agent.class);
+				
+				agentDao.updateAgentInfo(assignedAgent, agentUpdateHandler -> {
+					if (agentUpdateHandler.failed()) {
+						System.out.println(
+								"TaskAssignmentService :: markTaskCompleted() - FAILED to update Agent availability status after task closure.");
+						wdsApiContext.request().response().setStatusCode(200).end(Json.encode(closedTask));
+						return;
+					}
+				});
+			} catch (Exception excp) {
+				wdsApiContext.request().response().setStatusCode(200).end(Json.encode(closedTask));
+				return;
+			}
+			
+			wdsApiContext.request().response().setStatusCode(200).end(Json.encode(closedTask));
+			return;
 		});
-		System.out.println("markTaskCompleted() :: DONE Closing Task ID =>" +taskId);
 	}
 	
 }

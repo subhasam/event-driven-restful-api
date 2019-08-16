@@ -30,10 +30,6 @@
 		<vertx.testtools.version>2.0.3-final</vertx.testtools.version>
 
 		<vertx.version>3.6.2</vertx.version>
-		<!-- 
-		<vertx.platform.version>2.1.4</vertx.platform.version> 
-		<vertx.testtools.version>2.0.3-final</vertx.testtools.version> 
-		-->
 		<junit.version>4.11</junit.version>
 
 		<!--Plugin versions -->
@@ -59,11 +55,11 @@
 			<version>3.7.0</version>
 		</dependency>
 		<dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-sync</artifactId>
-            <version>${vertx.version}</version>
-            <scope>provided</scope>
-        </dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-sync</artifactId>
+			<version>${vertx.version}</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-platform</artifactId>
@@ -83,28 +79,47 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-redis-client</artifactId>
-            <version>${vertx.version}</version>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-redis-client</artifactId>
+			<version>${vertx.version}</version>
 			<scope>provided</scope>
-        </dependency>
+		</dependency>
 		<dependency>
 			<groupId>it.ozimov</groupId>
 			<artifactId>embedded-redis</artifactId>
 			<version>0.7.2</version>
 		</dependency>
-        
+
 		<!--Test dependencies -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		-->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.5.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>testtools</artifactId>
 			<version>${vertx.testtools.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>3.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-engine</artifactId>
+			<version>1.5.1</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
