@@ -67,6 +67,8 @@ public class WorkDistributionServer extends AbstractVerticle {
 				futureResult.fail(serverStartUpResult.cause());
 			}
 		});
+		
+		System.out.println("Congratulations !! Work Distribution API is ready to process your request.");
 
 	}
 	
@@ -108,7 +110,6 @@ public class WorkDistributionServer extends AbstractVerticle {
 		if (authService.isTrustedUser(wdsApiContext)) {
 			if (wdsTaskAssignmentService.isValidatTaskRequest(wdsApiContext)) {
 				wdsTaskAssignmentService.executeTaskAssignment(wdsApiContext);
-				System.out.println("WorkDistributionServer:: createTask() - DONE Assigning Agent to Task");
 			} else {
 				handleRequestError(wdsApiContext);
 				

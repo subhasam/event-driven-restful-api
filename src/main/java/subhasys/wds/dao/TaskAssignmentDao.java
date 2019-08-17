@@ -55,8 +55,6 @@ public class TaskAssignmentDao {
 		// db.tasks.find().sort({"startTime": -1}).limit(1)
 		mongoDbClient.findWithOptions(WDS_AGENT_TABLE, taskListQuery, taskSearchOption, resultHandler -> {
 			if (resultHandler.succeeded()) {
-				System.out.println("TaskAssignmentDao :: getAllTasksInProgress() - Most Recent Task INPROGRESS =>"
-						+ Json.encodePrettily(resultHandler.result()));
 				wdsTaskList.addAll(resultHandler.result());
 				return;
 			} else {
@@ -71,7 +69,6 @@ public class TaskAssignmentDao {
 		requestedTask.getAssignedAgent().setAvailable(false);
 		requestedTask.getAssignedAgent().setAssignedTaskPriority(requestedTask.getTaskPriority());
 		final JsonObject taskRequested = new JsonObject(Json.encode(requestedTask));
-		System.out.println("TaskAssignmentDao :: createTask() - Inserting Task in DB =>" + Json.encodePrettily(requestedTask));
 		mongoDbClient.insert(WDS_TASK_TABLE, taskRequested, addTaskHandler);
 
 	}
@@ -81,15 +78,6 @@ public class TaskAssignmentDao {
 		taskSearchQuery.put("taskId", taskId);
 		JsonObject taskUpdateQuery = new JsonObject();
 		taskUpdateQuery.put("$set", new JsonObject().put("taskStatus", taskStatus));
-		System.out.println("TaskAssignmentDao :: updateTask() - Updating Task in DB as COMPLETED. TaskId =>" + taskId);
-		/*
-		mongoDbClient.findOneAndUpdate(WDS_TASK_TABLE, taskSearchQuery, taskUpdateQuery, taskUpdateRes -> {
-			if (taskUpdateRes.failed()) {
-				taskHandler.handle(taskUpdateRes);
-				return;
-			}
-		});
-		*/
 		mongoDbClient.findOneAndUpdate(WDS_TASK_TABLE, taskSearchQuery, taskUpdateQuery, taskHandler);
 	}
 

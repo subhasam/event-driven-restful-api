@@ -33,8 +33,6 @@ public class AgentDao {
 		JsonObject agentUpdateQuery = new JsonObject();
 		agentUpdateQuery.put(COLUMN_AGENT_ID, agentInfo.getAgentId());
 		JsonObject updatedAgenInfo = new JsonObject(Json.encode(agentInfo));
-		System.out.println("AgentDao :: updateAgentInfo() - Updating Agent with assigned task in DB =>"
-				+ Json.encodePrettily(agentInfo));
 		mongoDbClient.findOneAndReplace(WDS_AGENT_TABLE, agentUpdateQuery, updatedAgenInfo, agentUpdateHandler);
 
 	}

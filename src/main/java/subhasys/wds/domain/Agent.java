@@ -9,8 +9,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import subhasys.wds.enums.TaskPriority;
-
 /**
  * @author subhasis
  * 
@@ -55,7 +53,8 @@ public class Agent implements Serializable {
 		this.fullName = fullName;
 		this.skill = skill;
 		this.skillSet = skillSet;
-		this.assignedTaskPriority = assignedTaskPriority; //TaskPriority.fromString(assignedTaskPriority);
+		this.assignedTaskPriority = assignedTaskPriority;
+		//this.assignedTaskPriority = TaskPriority.fromString(assignedTaskPriority);
 		this.available = available;
 	}
 
