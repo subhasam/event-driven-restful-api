@@ -28,14 +28,14 @@ $ mongod -dbpath data/db/
 * **Eclipse IDE Installation** https://www.eclipse.org/downloads/
 * Maven Installation : https://maven.apache.org/install.html
 
-* **Clone the Repo from GitHub **
+* **Clone the Repo from GitHub**
 ```
 $ git clone https://github.com/subhasam/work-distribution-api.git
 
 $ cd work-distribution-api
 $ mvn clean install
 ```
-* **Import the source code in Eclipse IDE and add the Run Configurations** ![Configure JRE]((docs/wdsVertxRunConfig-2.png)) and ![Run Configuration](docs/wdsVertxRunConfig.png)
+* **Import the source code in Eclipse IDE and add the Run Configurations** ![Configure JRE](docs/wdsVertxRunConfig-2.png) and ![Run Configuration](docs/wdsVertxRunConfig.png)
 
 
 * **_After install wait until this message appears in the console which means API is ready to process request._**
@@ -59,7 +59,7 @@ API End Points :
 
 | METHOD |            End-Point               |    Description          |  Test Data Reference                                      |
 |--------|------------------------------------|-------------------------|-----------------------------------------------------------|
-| GET    | /workdistribution/v1/health-check  | API Health Check        | [ApiAuthentication.json](docs/WdsApiAuthentication.json)  |
+| GET    | /workdistribution/v1/health-check  | API Health Check        | [ApiAuthentication.json](docs/WdsApiHealthCheck.json)  |
 | GET    | /workdistribution/v1/skills        | Lists Available Skills  | [AvailablesSkills.json](docs/WdsApiAvailablesSkills.json) |
 | POST   | /workdistribution/v1/tasks         | Create a Task           | [TaskCreationReqRes.json](docs/WdsTaskCreationReqRes.json)|
 | PATCH  | /workdistribution/v1/tasks/<taskId>| Mark a Task as Complete | [MarkTaskComplete.json](docs/WdsMarkTaskComplete.json)    |
