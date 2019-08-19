@@ -17,7 +17,6 @@ public class WdsAuthenicationService {
 
 	public boolean isTrustedUser(RoutingContext context) {
 		if (Objects.isNull(context.request().getHeader(API_ACCESS_TOKEN))) {
-			System.out.println("WdsAuthenicationService: isTrustedUser() - Unauthorized Access. Please add valid Auth-Token 'access_token' in the Request Header");
 			context.request().response().setStatusCode(401).setStatusMessage("Unauthorized Access. Please add valid Auth-Token 'access_token' in the Request Header");
 			context.fail(401);
 		}

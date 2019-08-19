@@ -8,6 +8,7 @@ import java.util.List;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import subhasys.wds.domain.Agent;
@@ -53,6 +54,11 @@ public class AgentDao {
 				return;
 			}
 		});
+	}
+	
+	public void getAvailableSkills(Handler<AsyncResult<JsonArray>> skillSearchHandler) {
+		mongoDbClient.distinct(WDS_AGENT_TABLE, COLUMN_SKILL, String.class.getName(), skillSearchHandler);
+
 	}
 
 }

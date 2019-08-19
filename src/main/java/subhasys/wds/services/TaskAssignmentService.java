@@ -202,4 +202,12 @@ public class TaskAssignmentService {
 		});
 	}
 	
+	public void getAvailableSkillSet(RoutingContext wdsApiContext) {
+		agentDao.getAvailableSkills(skillAvailabilityHandler -> {
+			if (skillAvailabilityHandler.succeeded()) {
+				wdsApiContext.request().response().setStatusCode(200).end(skillAvailabilityHandler.result().encodePrettily());
+			}
+		});
+	}
+	
 }

@@ -32,6 +32,8 @@ public class WorkDistributionServer extends AbstractVerticle {
 
 	public static final String APPLICATION_JSON = "application/json";
 	private static final String WDS_API_BASE_URI = "/workdistribution/v1";
+	private static final int SERVER_PORT = 9090;
+	private static final String SEVER_HOST = "localhost";
 	
 	private HttpServer wdsApiServer;
 	private WdsAuthenicationService authService;
@@ -62,13 +64,13 @@ public class WorkDistributionServer extends AbstractVerticle {
 		wdsApiServer.requestHandler(workDistributionApiRouter());
 		wdsApiServer.listen(serverStartUpResult -> {
 			if (serverStartUpResult.succeeded()) {
+				System.out.println("Congratulations !! Work Distribution API is ready to process your request at "
+						+ String.format("%s%s%s%s", "http://", SEVER_HOST, ":", SERVER_PORT));
 				futureResult.complete();
 			} else {
 				futureResult.fail(serverStartUpResult.cause());
 			}
 		});
-		
-		System.out.println("Congratulations !! Work Distribution API is ready to process your request.");
 
 	}
 	
@@ -77,6 +79,7 @@ public class WorkDistributionServer extends AbstractVerticle {
 		
 		wdsApiRouter.route().consumes(APPLICATION_JSON).produces(APPLICATION_JSON)
 				.handler(CorsHandler.create("*").allowedMethod(HttpMethod.GET).allowedMethod(HttpMethod.POST)
+						.allowedMethod(HttpMethod.PATCH)
 						.allowedHeader("access_token").allowedHeader("Content-Type"));
 		wdsApiRouter.route().handler(BodyHandler.create());
 		wdsApiRouter.route().handler(context -> {
@@ -86,8 +89,9 @@ public class WorkDistributionServer extends AbstractVerticle {
 		wdsApiRouter.route().failureHandler(ErrorHandler.create());
 
 		wdsApiRouter.get(String.format("%s%s", WDS_API_BASE_URI, "/health-check")).handler(this::checkApiHealth);
+		wdsApiRouter.get(String.format("%s%s", WDS_API_BASE_URI, "/skills")).handler(this::getAvailableSkills);
 		wdsApiRouter.post(String.format("%s%s", WDS_API_BASE_URI, "/tasks")).handler(this::createTask);
-		wdsApiRouter.post(String.format("%s%s", WDS_API_BASE_URI, "/tasks/:taskId")).handler(this::closeTask);
+		wdsApiRouter.patch(String.format("%s%s", WDS_API_BASE_URI, "/tasks/:taskId")).handler(this::closeTask);
 
 		return wdsApiRouter;
 
@@ -128,6 +132,12 @@ public class WorkDistributionServer extends AbstractVerticle {
 		}
 
 	}
+	
+	private void getAvailableSkills(RoutingContext wdsApiContext) {
+		if (authService.isTrustedUser(wdsApiContext)) {
+			wdsTaskAssignmentService.getAvailableSkillSet(wdsApiContext);
+		}
+	}
 
 	private void handleRequestError(RoutingContext wdsApiContext) {
 		wdsApiContext.request().response().setStatusCode(400).end("Required Task Details are not present in the request");
@@ -135,8 +145,8 @@ public class WorkDistributionServer extends AbstractVerticle {
 
 	private HttpServerOptions wdsServerOptions() {
 		HttpServerOptions httpServerOption = new HttpServerOptions();
-		httpServerOption.setHost("localhost");
-		httpServerOption.setPort(9090);
+		httpServerOption.setHost(SEVER_HOST);
+		httpServerOption.setPort(SERVER_PORT);
 		return httpServerOption;
 	}
 	

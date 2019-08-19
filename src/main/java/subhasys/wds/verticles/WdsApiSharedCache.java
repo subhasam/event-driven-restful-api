@@ -19,10 +19,9 @@ public class WdsApiSharedCache extends AbstractVerticle {
 
 	@Override
 	public void start(Future<Void> cacheServerFuture) {
-		System.out.println("WdsApiSharedCache :: start() - Starting Embedded RedisServer at port " + REDIS_PORT);
 		try {
-			redisServer = new RedisServer();
-			// redisServer.start();
+			//TODO redisServer = new RedisServer();
+			//TODO redisServer.start();
 			if (cacheServerFuture.succeeded()) {
 				System.out.println("WdsApiSharedCache :: start() - Done Starting Embedded RedisServer at port " + REDIS_PORT);
 			} else {

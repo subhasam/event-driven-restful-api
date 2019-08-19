@@ -5,21 +5,16 @@ package subhasys.wds.domain;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
-import subhasys.wds.enums.TaskPriority;
-
 /**
  * @author subhasis
  * 
- *         A task is defined by a unique identifier, a priority, a set of skills
+ * @description: A task is defined by a unique identifier, a priority, a set of skills
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -171,20 +166,6 @@ public class Task implements Serializable {
 		Task other = (Task) obj;
 		return Objects.equals(taskId, other.taskId) && taskPriority == other.taskPriority
 				&& taskStatus == other.taskStatus;
-	}
-
-	// Test
-	public static void main(String args[]) {
-		Skill skill = new Skill("ProblemSolving", "s1");
-		Set<Skill> skillSet = new HashSet<>();
-		skillSet.add(skill);
-		Agent assignedAgent = new Agent("9999", "John Doe", "Engineering", skillSet, 2, true);
-		String reqTask = Json.encode(new Task("1111", 2, skillSet, assignedAgent, "NEW"));
-		System.out.println(reqTask);
-		JsonObject taskJson = new JsonObject(reqTask);
-		//taskJson.put("taskPriority", TaskPriority.fromString(2));
-		System.out.println(Json.decodeValue(taskJson.encode(), Task.class));
-		System.out.println(TaskPriority.NA.getPriority());
 	}
 
 }

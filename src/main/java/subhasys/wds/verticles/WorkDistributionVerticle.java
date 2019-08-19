@@ -13,6 +13,7 @@ import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 
 /**
  * @author subhasis
@@ -32,9 +33,7 @@ public class WorkDistributionVerticle extends AbstractVerticle {
 	public void start(Future<Void> futureResult) {
 		Future<String> future = Future.future();
 		DeploymentOptions options = new DeploymentOptions();
-		// options.setWorker(true);
 		vertx.deployVerticle(WdsApiSharedCache.class.getName(), options, future);
-		// return future;
 	}
 
 	private Future<String> deployEmbeddedCache() {
@@ -65,8 +64,9 @@ public class WorkDistributionVerticle extends AbstractVerticle {
 	}
 
 	public static void main(String... wdsApiArgs) {
-		Vertx wdsApiVertx = Vertx.vertx();
-		wdsApiVertx.deployVerticle(WorkDistributionServer.class.getName());
+		final VertxOptions vertOptions = new VertxOptions();
+		vertOptions.setWarningExceptionTime(3000000000L);
+		Vertx.vertx(vertOptions).deployVerticle(WorkDistributionServer.class.getName());
 	}
 
 }
