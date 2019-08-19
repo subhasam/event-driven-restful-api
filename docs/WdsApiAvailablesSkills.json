@@ -1,0 +1,25 @@
+{
+    "API_DETAILS": {
+        "API_End_Point": "http://localhost:9090/workdistribution/v1/skills",
+        "METHOD": "GET",
+        "Request_Headers": [
+            {
+                "Content-Type": "application/json",
+                "access_token": "subhasis"
+            }
+        ],
+        "NOTE": "This End Point Lists the Skills possessed by available agents."
+        		"Header 'access_token' can have any value"
+    },
+    "REQUEST_BODY": {},
+    "API_RESPONSE": {
+        "RESPONSE_CODE": 200,
+        "RESPONSE_BODY": [
+        	"Marketting",
+        	"Sales",
+        	"Designing",
+        	"Planning",
+        	"Accounting"
+        	]
+    }
+}

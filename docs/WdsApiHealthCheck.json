@@ -1,0 +1,18 @@
+{
+    "API_DETAILS": {
+        "API_End_Point": "http://localhost:9090/workdistribution/v1/health-check",
+        "METHOD": "GET",
+        "Request_Headers": [
+            {
+                "Content-Type": "application/json",
+                "access_token": "subhasis"
+            }
+        ],
+        "NOTE": "Header 'access_token' can have any value"
+    },
+    "REQUEST_BODY": {},
+    "API_RESPONSE": {
+        "RESPONSE_CODE": 200,
+        "RESPONSE_BODY": "Health-Check : Work Distribution API is Up Running..."
+    }
+}

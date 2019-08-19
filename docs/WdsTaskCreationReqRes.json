@@ -1,0 +1,64 @@
+{
+    "API_DETAILS": {
+        "API_End_Point": "http: //localhost:9090/workdistribution/v1/tasks",
+        "METHOD": "POST",
+        "Request_Headers": [
+            {
+                "Content-Type": "application/json",
+                "access_token": "subhasis"
+            }
+        ],
+        "NOTE": "Header 'access_token' can have any value"
+    },
+    "REQUEST_BODY": {
+        "taskId": "t2525",
+        "taskPriority": 2,
+        "requiredSkillSet": [
+            {
+                "skillName": "Sales",
+                "skillId": "s77"
+            }
+        ],
+        "assignedAgent": null,
+        "taskStatus": "NEW",
+        "startTime": null
+    },
+    "API_RESPONSE": {
+        "RESPONSE_CODE": 201,
+        "RESPONSE_BODY": {
+            "taskId": "t2525",
+            "taskPriority": 2,
+            "requiredSkillSet": [
+                {
+                    "skillName": "Sales",
+                    "skillId": "s77"
+                }
+            ],
+            "assignedAgent": {
+                "agentId": "2222",
+                "fullName": "Marry Biller",
+                "skill": "Sales",
+                "skillSet": [],
+                "assignedTaskPriority": 2,
+                "available": false
+            },
+            "taskStatus": "NEW",
+            "startTime": {
+                "dayOfYear": 227,
+                "monthValue": 8,
+                "year": 2019,
+                "month": "AUGUST",
+                "dayOfMonth": 15,
+                "dayOfWeek": "THURSDAY",
+                "hour": 22,
+                "minute": 11,
+                "second": 4,
+                "nano": 537000000,
+                "chronology": {
+                    "id": "ISO",
+                    "calendarType": "iso8601"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "API_DETAILS": {
+        "API_End_Point": "http://localhost:9090/workdistribution/v1/tasks",
+        "METHOD": "POST",
+        "Request_Headers": [
+            {
+                "Content-Type": "application/json"
+            }
+        ]
+    },
+    "REQUEST_BODY": {
+        "taskId": "t2525",
+        "taskPriority": 2,
+        "requiredSkillSet": [
+            {
+                "skillName": "Sales",
+                "skillId": "s77"
+            }
+        ],
+        "assignedAgent": null,
+        "taskStatus": "NEW",
+        "startTime": null
+    },
+    "API_RESPONSE": {
+        "RESPONSE_CODE": 401,
+        "RESPONSE_BODY": {
+        	"error":{
+        		"code": 401,
+        		"message": "Unauthorized Access. Please add valid Auth-Token 'access_token' in the Request Header "
+        	}
+        }	
+
+    }
+}

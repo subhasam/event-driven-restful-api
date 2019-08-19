@@ -1,0 +1,38 @@
+{
+	[ {
+		"agentId" : "1111",
+		"assignedTaskPriority" : "",
+		"available" : true,
+		"fullName" : "Ben Burger",
+		"skill" : "Marketting",
+		"skillSet" : []
+	}, {
+		"agentId" : "2222",
+		"assignedTaskPriority" : "",
+		"available" : true,
+		"fullName" : "Litchi Kitchen",
+		"skill" : "Sales",
+		"skillSet" : []
+	}, {
+		"agentId" : "3333",
+		"assignedTaskPriority" : "",
+		"available" : true,
+		"fullName" : "Singh King",
+		"skill" : "Designing",
+		"skillSet" : []
+	}, {
+		"agentId" : "4444",
+		"assignedTaskPriority" : "",
+		"available" : true,
+		"fullName" : "Panda Pong",
+		"skill" : "Planning",
+		"skillSet" : []
+	}, {
+		"agentId" : "5555",
+		"assignedTaskPriority" : "",
+		"available" : true,
+		"fullName" : "Palo Alto",
+		"skill" : "Accounting",
+		"skillSet" : []
+	} ]
+}

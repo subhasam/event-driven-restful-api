@@ -1,0 +1,63 @@
+{
+    "API_DETAILS": {
+        "API_End_Point": "http://localhost:9090/workdistribution/v1/tasks",
+        "METHOD": "POST",
+        "Request_Headers": [
+            {
+                "Content-Type": "application/json",
+                "access_token": "subhasis"
+            }
+        ],
+        "NOTE": "Header 'access_token' can have any value"
+    },
+    "REQUEST_BODY_MISSING_TASK_ID": {
+        "taskId": "",
+        "taskPriority": 2,
+        "requiredSkillSet": [
+            {
+                "skillName": "Sales",
+                "skillId": "s77"
+            }
+        ],
+        "assignedAgent": null,
+        "taskStatus": "NEW",
+        "startTime": null
+    },
+    "REQUEST_BODY_MISSING_SKILL": {
+        "taskId": "",
+        "taskPriority": 2,
+        "requiredSkillSet": [],
+        "assignedAgent": null,
+        "taskStatus": "NEW",
+        "startTime": null
+    },
+    "API_RESPONSE_FOR_MISSING_TASK_DETAILS": {
+        "RESPONSE_CODE_BAD_REQUEST": 400,
+        "RESPONSE_BODY": "Required Task Details are not present in the request"
+    },
+    "REQUEST_BODY_INVALID_SKILL": {
+        "taskId": "t2020",
+        "taskPriority": 1,
+        "requiredSkillSet": [
+            {
+                "skillName": "RandomSkill",
+                "skillId": "s88"
+            }
+        ],
+        "assignedAgent": null,
+        "taskStatus": "NEW",
+        "startTime": null
+    },
+    "API_RESPONSE_FOR_INVALID_SKILL": {
+        "error": {
+            "code": 500,
+            "message": "Oops !! Sorry, No Agent with the required skill found for the Task."
+        }
+    },
+    "API_EXCPETION_ERROR_AT_RUNTIME": {
+        "error": {
+            "code": 500,
+            "message": "Internal Server Error"
+        }
+    }
+}
