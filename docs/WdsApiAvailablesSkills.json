@@ -8,7 +8,7 @@
                 "access_token": "subhasis"
             }
         ],
-        "NOTE": "This End Point Lists the Skills possessed by available agents."
+        "DESCRIPTION": "This End Point Lists the Skills possessed by available agents."
         		"Header 'access_token' can have any value"
     },
     "REQUEST_BODY": {},

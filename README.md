@@ -19,15 +19,26 @@ Work Distribution API
 * **MongoDB installation and Test Data Set Up**
 1. Refer the instructions to install MongoDB : https://docs.mongodb.com/manual/installation/
 2. Make sure Mongo DB is running on the default port 27017
-3. Insert Agent related data with this query  db.agents.insert() and passing the agent data present in this file- ![docs/agentData.json]
+```
+$ mongod -dbpath data/db/
+```
 
-* **Clone the Repo from GitHub ***
+3. Insert Agent related data with this query  db.agents.insert() and passing the agent data present in this file- [agentData.json](docs/agentData.json)
+
+* **Eclipse IDE Installation** https://www.eclipse.org/downloads/
+* Maven Installation : https://maven.apache.org/install.html
+
+* **Clone the Repo from GitHub **
 ```
 $ git clone https://github.com/subhasam/work-distribution-api.git
+
 $ cd work-distribution-api
-$ mvn clean install vertx:runMod
+$ mvn clean install
 ```
-After install wait until this message appears in the console which means API is ready to process request.
+* **Import the source code in Eclipse IDE and add the Run Configurations** ![Configure JRE]((docs/wdsVertxRunConfig-2.png)) and ![Run Configuration](docs/wdsVertxRunConfig.png)
+
+
+* **_After install wait until this message appears in the console which means API is ready to process request._**
 
 ```
 Congratulations !! Work Distribution API is ready to process your request at http://localhost:9090
@@ -41,19 +52,18 @@ Response : Health-Check : Work Distribution API is Up Running...
 ```
 ## Testing the Work Distribution API
 
-## You can use any Rest Client like Postman/Insomnia/Chrome's Rest Client Extension to test the API 
+You can use any Rest Client of your choice like Postman/Insomnia/Chrome's Rest Client Extension to test the API.
 
 API End Points :
 ================
 
-| METHOD |            End-Point               |    Description   |  Test Data Reference               |
-|--------|------------------------------------|------------------|------------------------------------|
-| GET    | /workdistribution/v1/health-check  | API Health Check | ![docs/WdsApiAuthentication.json]  |
-| GET    | /workdistribution/v1/skills        | Lists Available  | ![docs/WdsApiAvailablesSkills.json]|
-|        |                                    | Skills           |                                    |
-| POST   | /workdistribution/v1/tasks         | Create a Task    | ![docs/WdsTaskCreationReqRes.json] |
-| PATCH  | /workdistribution/v1/task/<taskId> | Mark a Task as   | ![docs/WdsMarkTaskComplete.json]   |
-|		 |                                    | Complete         |                                    |
+| METHOD |            End-Point               |    Description          |  Test Data Reference                                      |
+|--------|------------------------------------|-------------------------|-----------------------------------------------------------|
+| GET    | /workdistribution/v1/health-check  | API Health Check        | [ApiAuthentication.json](docs/WdsApiAuthentication.json)  |
+| GET    | /workdistribution/v1/skills        | Lists Available Skills  | [AvailablesSkills.json](docs/WdsApiAvailablesSkills.json) |
+| POST   | /workdistribution/v1/tasks         | Create a Task           | [TaskCreationReqRes.json](docs/WdsTaskCreationReqRes.json)|
+| PATCH  | /workdistribution/v1/tasks/<taskId>| Mark a Task as Complete | [MarkTaskComplete.json](docs/WdsMarkTaskComplete.json)    |
+|        |                                    | Common Errors           | [Common-API-Errors.json](docs/WdsInvalidRequestRes.json)  |
 
 ## API Sample Request and Response
 Sample Test Data - Request and Response are listed under "docs" directory.
@@ -67,4 +77,4 @@ Sample Test Data - Request and Response are listed under "docs" directory.
 * Integration with PostgreSQL
 * Integration with SaaS
 * Integration with CouchBase
-* Additional Microservicesx
+* Additional Microservices

@@ -9,7 +9,7 @@
             }
         ],
         "taskId_As_PathParameter": "t2525",
-        "NOTE": "Header 'access_token' can have any value | 'taskId' can also have any value"
+        "DESCRIPTION": "Marks a Task as Complete | 'taskId' can have any value | Header 'access_token' can have any value"
     },
     "REQUEST_BODY": {},
     "API_RESPONSE": {
