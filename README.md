@@ -79,7 +79,7 @@ API End Points :
 | GET    | /workdistribution/v1/health-check  | API Health Check        | [ApiHealthCheck.json](docs/WdsApiHealthCheck.json)  |
 | GET    | /workdistribution/v1/skills        | Lists Available Skills  | [AvailablesSkills.json](docs/WdsApiAvailablesSkills.json) |
 | POST   | /workdistribution/v1/tasks         | Create a Task           | [TaskCreationReqRes.json](docs/WdsTaskCreationReqRes.json)|
-| PATCH  | /workdistribution/v1/tasks/<taskId>| Mark a Task as Complete | [MarkTaskComplete.json](docs/WdsMarkTaskComplete.json)    |
+| PATCH  | /workdistribution/v1/tasks/taskId| Mark a Task as Complete | [MarkTaskComplete.json](docs/WdsMarkTaskComplete.json)    |
 |        |                                    | Common Errors           | [Common-API-Errors.json](docs/WdsInvalidRequestRes.json)  |
 
 ## API Sample Request and Response
