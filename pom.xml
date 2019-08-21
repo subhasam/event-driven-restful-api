@@ -20,7 +20,7 @@
 		<vertx.createFatJar>false</vertx.createFatJar>
 
 		<!--Vertx module -->
-		<!-- <module.name>${project.groupId}~${project.artifactId}~${project.version}</module.name>-->
+		<!-- <module.name>${project.groupId}~${project.artifactId}~${project.version}</module.name> -->
 		<mods.directory>target/mods</mods.directory>
 
 		<!--Dependency versions -->
@@ -45,7 +45,6 @@
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-core</artifactId>
 			<version>${vertx.version}</version>
-			<!-- <scope>provided</scope>-->
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
@@ -56,19 +55,16 @@
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-platform</artifactId>
 			<version>${vertx.platform.version}</version>
-			<!-- <scope>provided</scope>-->
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-mongo-client</artifactId>
 			<version>${vertx.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-redis-client</artifactId>
 			<version>${vertx.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>it.ozimov</groupId>
@@ -76,21 +72,19 @@
 			<version>0.7.2</version>
 		</dependency>
 		<!--Test dependencies -->
-		<!-- 
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
 			<scope>test</scope>
 		</dependency>
-		-->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
 			<version>5.5.1</version>
 			<scope>test</scope>
 		</dependency>
-		 
+
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-unit</artifactId>
@@ -150,6 +144,24 @@
 							</transformers>
 							<artifactSet />
 							<outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.7</version>
+				<executions>
+					<execution>
+						<id>copy-mod-dependencies-to-target-dependencies</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/dependencies</outputDirectory>
+							<includeScope>runtime</includeScope>
 						</configuration>
 					</execution>
 				</executions>

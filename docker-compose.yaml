@@ -1,0 +1,10 @@
+version: '3'
+services:
+  mongocontainer:
+    image: "mongo"
+    volumes:
+    - "~/mongo-data:/data/db"
+  appcontainer:
+    build:
+      context: .
+      dockerfile: Dockerfile

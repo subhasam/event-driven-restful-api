@@ -32,8 +32,8 @@ public class WorkDistributionVerticle extends AbstractVerticle {
 	@Override
 	public void start(Future<Void> futureResult) {
 		Future<String> future = Future.future();
-		DeploymentOptions options = new DeploymentOptions();
-		vertx.deployVerticle(WdsApiSharedCache.class.getName(), options, future);
+		DeploymentOptions webserverOptions = new DeploymentOptions();
+		vertx.deployVerticle(WdsApiSharedCache.class.getName(), webserverOptions, future);
 	}
 
 	private Future<String> deployEmbeddedCache() {

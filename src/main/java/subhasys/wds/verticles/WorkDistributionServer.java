@@ -38,7 +38,7 @@ public class WorkDistributionServer extends AbstractVerticle {
 	private HttpServer wdsApiServer;
 	private WdsAuthenicationService authService;
 	private TaskAssignmentService wdsTaskAssignmentService;
-	private static MongoClient wdsMongoClient;
+	private MongoClient wdsMongoClient;
 
 	@Override
 	public void init(Vertx vertx, Context context) {

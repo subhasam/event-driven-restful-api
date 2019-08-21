@@ -29,10 +29,9 @@ public class WdsApiSharedCache extends AbstractVerticle {
 			}
 			cacheServerFuture.complete();
 		} catch (Exception redisIoExcp) {
-			redisIoExcp.printStackTrace();
-			cacheServerFuture.fail(redisIoExcp);
+			//redisIoExcp.printStackTrace();
+			//TODO cacheServerFuture.fail(redisIoExcp);
 		}
-		
 	}
 
 	@Override
