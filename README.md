@@ -41,9 +41,9 @@ $ mvn clean install
 * **Steps for Installation through Docker(WORK IN PROGRESS)**
 
 ```
-$ git clone https://github.com/subhasam/work-distribution-api.git
+$ git clone https://github.com/subhasam/event-driven-restful-api.git
 
-$ cd work-distribution-api
+$ cd event-driven-restful-api
 
 $ mvn clean install 
 
