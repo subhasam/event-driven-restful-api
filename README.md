@@ -1,4 +1,4 @@
-Event Driveb RESTful API
+Event Driven RESTful API
 ========================
 
 @author : [Subhasis Samal](https://www.linkedin.com/in/subhasis-samal)
