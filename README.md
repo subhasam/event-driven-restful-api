@@ -1,5 +1,5 @@
-Work Distribution API
-======================
+Event Driveb RESTful API
+========================
 
 @author : [Subhasis Samal](https://www.linkedin.com/in/subhasis-samal)
 # An Event Driven RESTful API using Vertx with basic CRUD Operation
